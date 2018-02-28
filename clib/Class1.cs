@@ -13,8 +13,18 @@ namespace clib
         private const string initVector = "pemgail9uzpgzl88";
         private const int keysize = 256;
 
+        public struct EncryptedBundle
+        {
+            string EncryptedKey;
+            string EncryptedPassword;
+        }
+
+
         public static string EncryptString(string plainText, string passPhrase)
         {
+
+            InvertMembers(GenerateKey(6));
+
             byte[] initVectorBytes = Encoding.UTF8.GetBytes(initVector);
             byte[] plainTextBytes = Encoding.UTF8.GetBytes(plainText);
             PasswordDeriveBytes password = new PasswordDeriveBytes(passPhrase, null);
@@ -34,6 +44,9 @@ namespace clib
 
         public static string DecryptString(string cipherText, string passPhrase)
         {
+
+            ChangeCase(passPhrase);
+
             byte[] initVectorBytes = Encoding.UTF8.GetBytes(initVector);
             byte[] cipherTextBytes = Convert.FromBase64String(cipherText);
             PasswordDeriveBytes password = new PasswordDeriveBytes(passPhrase, null);
@@ -49,5 +62,77 @@ namespace clib
             cryptoStream.Close();
             return Encoding.UTF8.GetString(plainTextBytes, 0, decryptedByteCount);
         }
+/*
+        private static string EncryptKey(string key)
+        {
+
+        }
+        */
+        private static string GenerateKey (int KeyLength)
+        {
+            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+            char[] stringChars = new char[KeyLength];
+            Random random = new Random();
+            for (int i = 0; i < stringChars.Length; i++)
+            {
+                stringChars[i] = chars[random.Next(chars.Length)];
+            }
+            string key = new String(stringChars);
+            return key;
+        }
+/*
+        private static string ChangePosition(string stringLine)
+        {
+
+        }
+        */
+        private static string ChangeCase(string stringLine)
+        {
+            int i = 0;
+            string resultLine = "";
+            while (i < stringLine.Length)
+            {
+                if (Char.IsUpper(stringLine[i]))
+                {
+                    resultLine += Char.ToLower(stringLine[i]);
+                }
+                else if (Char.IsLower(stringLine[i]))
+                {
+                    resultLine += Char.ToUpper(stringLine[i]);
+                }
+                else
+                {
+                    resultLine += stringLine[i];
+                }
+                i++;
+            }
+
+            return resultLine;
+
+        }
+        
+        private static string InvertMembers(string stringLine)
+        {
+            string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+            int i = 0;
+            string resultLine = "";
+            while (i < stringLine.Length)
+            {
+                resultLine += chars[(chars.Length - chars.IndexOf(stringLine[i]) - 1)];
+                i++;
+            }
+
+            return resultLine;
+        }
+        /*
+        private static string EncryptXOR(string stringLine)
+        {
+
+        }
+        */
+
+
+
+
     }
 }
