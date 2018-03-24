@@ -10,21 +10,17 @@ namespace clib
 {
     public class CryptoService
     {
-        private const string initVector = "pemgail9uzpgzl88";
         private const int keysize = 256;
 
         public struct EncryptedBundle
         {
-            string EncryptedKey;
-            string EncryptedPassword;
+            public string EncryptedKey { get; set; }
+            public string EncryptedString { get; set; }
         }
 
-
-        public static string EncryptString(string plainText, string passPhrase)
+        public static EncryptedBundle EncryptString(string plainText, int keyLength, string initVector)
         {
-
-            InvertMembers(GenerateKey(6));
-
+            string passPhrase = GenerateKey(keyLength);
             byte[] initVectorBytes = Encoding.UTF8.GetBytes(initVector);
             byte[] plainTextBytes = Encoding.UTF8.GetBytes(plainText);
             PasswordDeriveBytes password = new PasswordDeriveBytes(passPhrase, null);
@@ -39,14 +35,16 @@ namespace clib
             byte[] cipherTextBytes = memoryStream.ToArray();
             memoryStream.Close();
             cryptoStream.Close();
-            return Convert.ToBase64String(cipherTextBytes);
+            EncryptedBundle eb = new EncryptedBundle();
+            eb.EncryptedString = Convert.ToBase64String(cipherTextBytes);
+            eb.EncryptedKey = EncryptKey(passPhrase);
+            return eb;
         }
 
-        public static string DecryptString(string cipherText, string passPhrase)
+        public static string DecryptString(EncryptedBundle eb, string initVector)
         {
-
-            ChangeCase(passPhrase);
-
+            string passPhrase = DecryptKey(eb.EncryptedKey);
+            string cipherText = eb.EncryptedString;
             byte[] initVectorBytes = Encoding.UTF8.GetBytes(initVector);
             byte[] cipherTextBytes = Convert.FromBase64String(cipherText);
             PasswordDeriveBytes password = new PasswordDeriveBytes(passPhrase, null);
@@ -62,12 +60,21 @@ namespace clib
             cryptoStream.Close();
             return Encoding.UTF8.GetString(plainTextBytes, 0, decryptedByteCount);
         }
-/*
+
         private static string EncryptKey(string key)
         {
+ 
+            return EncryptXOR(ChangePosition(key.Substring(0, key.Length / 4))+ChangeCase(key.Substring(key.Length/4, key.Length / 4))+InvertMembers(key.Substring((key.Length / 4)*2, key.Length / 4))+EncryptXOR(key.Substring((key.Length / 4) * 3, (key.Length / 4) + (key.Length % 4)), (key.Length)*3), key.Length);
 
         }
-        */
+
+        private static string DecryptKey(string keyXOR)
+        {
+            string key = EncryptXOR(keyXOR, keyXOR.Length);
+            return (ReversePosition(key.Substring(0, key.Length / 4)) + ChangeCase(key.Substring(key.Length / 4, key.Length / 4)) + InvertMembers(key.Substring((key.Length / 4) * 2, key.Length / 4)) + EncryptXOR(key.Substring((key.Length / 4) * 3, (key.Length / 4) + (key.Length % 4)), (keyXOR.Length)*3));
+
+        }
+
         private static string GenerateKey (int KeyLength)
         {
             var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
@@ -80,12 +87,70 @@ namespace clib
             string key = new String(stringChars);
             return key;
         }
-/*
+
         private static string ChangePosition(string stringLine)
         {
+            int k;
+            string resultLine="";
+            for (int i = 0; i < 3; i++)
+            {
+                k = 0;
+                resultLine = "";
+                while (k < stringLine.Length/2)
+                {
+                    resultLine += stringLine[stringLine.Length - k - 1];
+                    resultLine += stringLine[k];
+                    k++;
+                }
+                if (stringLine.Length%2 != 0 )
+                    resultLine += stringLine[stringLine.Length / 2];
 
+                stringLine = resultLine;
+            }
+            return resultLine;
         }
-        */
+
+        private static string ReversePosition(string stringLine)
+        {
+            int k;
+            string resultLine = "";
+            for (int i = 0; i < 3; i++)
+            {
+                k = 0;
+                resultLine = "";
+                if (stringLine.Length % 2 == 0)
+                {
+                    while (k < stringLine.Length / 2)
+                    {
+                        resultLine += stringLine[(2 * k + 1)];
+                        k++;
+                    }
+                    while (k < stringLine.Length)
+                    {
+                        resultLine += stringLine[((stringLine.Length * 2 - 2) - 2 * k)];
+                        k++;
+                    }
+                }
+                else
+                {
+                    while (k < stringLine.Length / 2)
+                    {
+                        resultLine += stringLine[(2 * k + 1)];
+                        k++;
+                    }
+                    resultLine += stringLine[stringLine.Length - 1];
+                    while (k < stringLine.Length - 1)
+                    {
+                        resultLine += stringLine[(((stringLine.Length-1) * 2 - 2) - 2 * k)];
+                        k++;
+                    }
+                }
+                stringLine = resultLine;
+            }
+            return resultLine;
+        }
+
+
         private static string ChangeCase(string stringLine)
         {
             int i = 0;
@@ -106,7 +171,6 @@ namespace clib
                 }
                 i++;
             }
-
             return resultLine;
 
         }
@@ -124,15 +188,16 @@ namespace clib
 
             return resultLine;
         }
-        /*
-        private static string EncryptXOR(string stringLine)
+        
+        private static string EncryptXOR(string stringLine, int key)
         {
-
+            string resultLine = "";
+            for (int i = 0; i < stringLine.Length; i++)
+            {
+                resultLine += (char)(stringLine[i] ^ key);
+            }
+            return resultLine;
         }
-        */
-
-
-
 
     }
 }
