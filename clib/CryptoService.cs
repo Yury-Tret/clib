@@ -37,13 +37,13 @@ namespace clib
             cryptoStream.Close();
             EncryptedBundle eb = new EncryptedBundle();
             eb.EncryptedString = Convert.ToBase64String(cipherTextBytes);
-            eb.EncryptedKey = EncryptKey(passPhrase);
+            eb.EncryptedKey = Convert.ToBase64String(Encoding.UTF8.GetBytes(EncryptKey(passPhrase)));
             return eb;
         }
 
         public static string DecryptString(EncryptedBundle eb, string initVector)
         {
-            string passPhrase = DecryptKey(eb.EncryptedKey);
+            string passPhrase = DecryptKey(Encoding.UTF8.GetString(Convert.FromBase64String(eb.EncryptedKey)));
             string cipherText = eb.EncryptedString;
             byte[] initVectorBytes = Encoding.UTF8.GetBytes(initVector);
             byte[] cipherTextBytes = Convert.FromBase64String(cipherText);
