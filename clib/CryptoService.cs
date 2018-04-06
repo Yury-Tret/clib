@@ -11,6 +11,7 @@ namespace clib
     public class CryptoService
     {
         private const int keysize = 256;
+        private const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
 
         public struct EncryptedBundle
         {
@@ -77,7 +78,6 @@ namespace clib
 
         private static string GenerateKey (int KeyLength)
         {
-            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
             char[] stringChars = new char[KeyLength];
             Random random = new Random();
             for (int i = 0; i < stringChars.Length; i++)
@@ -177,7 +177,6 @@ namespace clib
         
         private static string InvertMembers(string stringLine)
         {
-            string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
             int i = 0;
             string resultLine = "";
             while (i < stringLine.Length)
